@@ -15,7 +15,7 @@ StackErr_t StackVerify(stack_t* stack) {
     if (stack->size < 2)
         return SIZE_ERR;
     
-    if (stack->capacity <= 2)
+    if (stack->capacity < 2)
         return CAPACITY_ERR;
 
     if (stack->size > stack->capacity)

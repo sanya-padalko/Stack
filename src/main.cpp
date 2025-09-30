@@ -14,7 +14,7 @@ int main() {
     StackErr_t* code_error = (StackErr_t*)calloc(1, sizeof(StackErr_t));
     *code_error = NOTHING;
     
-    make_stack(stack, (ssize_t)2);
+    make_stack(stack, 2);
 
     for (int i = 0; i < 400; ++i) {
         if (i % 5 == 3) {
@@ -32,5 +32,5 @@ int main() {
 
     stackdump(stack);
 
-    delete_stack(stack);
+    StackDtor(stack, code_error);
 }

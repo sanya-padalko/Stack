@@ -20,7 +20,8 @@ enum StackErr_t {
     CANARY_ERR     =   5,
     REALLOC_ERR    =   6,
     HASH_ERR       =   7,
-    CAP_SIZE_ERR   =   8
+    CAP_SIZE_ERR   =   8,
+    VALUE_ERR      =   9,
 };
 
 void ParseErr(StackErr_t error_type);

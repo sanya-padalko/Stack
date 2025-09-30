@@ -29,6 +29,9 @@ void ParseErr(StackErr_t error_type) {
         case CAP_SIZE_ERR:
             printerr(RED_COLOR "Size become greater than capacity in stack\n");
             break;
+        case VALUE_ERR:
+            printerr(RED_COLOR "Trying to work with POIZON value\n");
+            break;
         default:
             printerr(YELLOW_COLOR "Unknown error\n");
     }

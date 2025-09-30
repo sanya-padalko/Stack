@@ -5,16 +5,6 @@
 
 #define printerr(...) fprintf(stderr, __VA_ARGS__)
 
-#define my_assert(comp, code_err, ret_value) \
-    if (code_error == NULL) \
-        code_error = (StackErr_t*)calloc(1, sizeof(StackErr_t)); \
-    if (!comp) { \
-        printerr(RED_COLOR "error in %s: function -> %s, line %d: " RESET_COLOR, __FILE__, __FUNCTION__, __LINE__); \
-        ParseErr(code_err); \
-        *code_error = code_err; \
-        return ret_value; \
-    }
-
 #define RESET_COLOR  "\033[0m"
 #define RED_COLOR    "\033[31m"
 #define GREEN_COLOR  "\033[32m"

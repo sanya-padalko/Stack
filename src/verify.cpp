@@ -1,5 +1,13 @@
 #include "verify.h"
 
+long calc_hash(stack_t *stack) {
+    long hash = 0;
+    for (int i = 1; i < stack->capacity - 1; ++i)
+        hash = (hash + i * stack->data[i]) % mod;
+    
+    return hash;
+}
+
 StackErr_t StackVerify(stack_t* stack) {
     if (!stack) 
         return NULLPTR;
@@ -11,16 +19,12 @@ StackErr_t StackVerify(stack_t* stack) {
         return CAPACITY_ERR;
 
     if (stack->size > stack->capacity)
-        return SIZE_ERR;
+        return CAP_SIZE_ERR;
 
-    if (stack->data[0] != CANARY || stack->data[stack->capacity - 1] != CANADA)
+    if (stack->data[0] != CANARY_LEFT || stack->data[stack->capacity - 1] != CANARY_RIGHT)
         return CANARY_ERR;
 
-    long real_hash = 0;
-    for (int i = 1; i < stack->capacity - 1; ++i)
-        real_hash = (real_hash + i * stack->data[i]) % mod;
-
-    if (real_hash != stack->hash)
+    if (calc_hash(stack) != stack->hash)
         return HASH_ERR;
 
     return NOTHING;
@@ -76,7 +80,7 @@ void StackDump(stack_t* stack, StackErr_t* code_error, VarInfo varinfo) {
         printerr("\t\t{\n");
 
         if ((stack->capacity) >= 0) {
-            printerr((stack->data[0] == CANARY) ? GREEN_COLOR : RED_COLOR);
+            printerr((stack->data[0] == CANARY_LEFT) ? GREEN_COLOR : RED_COLOR);
             printerr("\t\t   [%2d] = %10d (CANARY)\n" RESET_COLOR, 0, *stack->data);
             for (ssize_t i = 1; i < stack->capacity - 1; ++i) {
                 if (i >= MaxPrintedCount) {
@@ -84,13 +88,15 @@ void StackDump(stack_t* stack, StackErr_t* code_error, VarInfo varinfo) {
                     break;
                 }
 
-                if (*(stack->data + i) == POIZON)
-                    printerr("\t\t   [%2d] = %10d (POIZON)\n", i, POIZON);
-                else
+                if (*(stack->data + i) == POIZON_VALUE) {
+                    printerr("\t\t   [%2d] = %10d (POIZON)\n", i, POIZON_VALUE);
+                }
+                else {
                     printerr("\t\t * [%2d] = %10d\n", i, *(stack->data + i));
+                }
             }
             
-            printerr((stack->data[stack->capacity - 1] == CANADA) ? GREEN_COLOR : RED_COLOR);
+            printerr((stack->data[stack->capacity - 1] == CANARY_RIGHT) ? GREEN_COLOR : RED_COLOR);
             printerr("\t\t   [%2d] = %10d (CANARY)\n" RESET_COLOR, stack->capacity - 1, stack->data[stack->capacity - 1]);
         }
 

@@ -1,7 +1,7 @@
 #include "verify.h"
 
-long calc_hash(stack_t *stack) {
-    long hash = 0;
+unsigned long calc_hash(stack_t *stack) {
+    unsigned long hash = 0;
     for (int i = 1; i < stack->capacity - 1; ++i)
         hash = (hash + i * stack->data[i]) % mod;
     
@@ -30,7 +30,7 @@ StackErr_t StackVerify(stack_t* stack) {
     return NOTHING;
 }
 
-void StackDump(stack_t* stack, StackErr_t* code_error, VarInfo varinfo) {
+void StackDump(stack_t* stack, VarInfo varinfo) {
     printerr("\nStackDump called from %s: in function %s, line %d\n", varinfo.file_name, varinfo.func_name, varinfo.line_ind);
     printerr("%s ", varinfo.stack_name);
 

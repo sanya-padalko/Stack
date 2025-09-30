@@ -29,7 +29,8 @@ enum StackErr_t {
     CAPACITY_ERR   =   4,
     CANARY_ERR     =   5,
     REALLOC_ERR    =   6,
-    HASH_ERR       =   7
+    HASH_ERR       =   7,
+    CAP_SIZE_ERR   =   8
 };
 
 void ParseErr(StackErr_t error_type);

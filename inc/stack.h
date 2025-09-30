@@ -19,7 +19,7 @@ stack_t* StackCtor(ssize_t capacity ON_DEBUG(, VarInfo varinfo));
 
 StackErr_t StackDtor(stack_t *stack);
 
-void StackPush(stack_t *stack, StackElem_t new_value);
+StackErr_t StackPush(stack_t *stack, StackElem_t new_value);
 
 StackElem_t StackPop(stack_t *stack);
 

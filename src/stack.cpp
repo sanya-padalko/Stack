@@ -90,17 +90,17 @@ static int StackRealloc(stack_t *stack, ssize_t new_size) {
     return stack->capacity;
 }
 
-void StackPush(stack_t *stack, StackElem_t new_value) {
+StackErr_t StackPush(stack_t *stack, StackElem_t new_value) {
     stackverify(stack);
     if (code_error != NOTHING)
-        return;
+        return code_error;
 
     if (stack->size == stack->capacity) {
         int new_capacity = StackRealloc(stack, stack->size * 2);
 
         if (new_capacity == -1) {
             printerr(RED_COLOR "Push was not completed\n" RESET_COLOR);
-            return;
+            return REALLOC_ERR;
         }
     }
 
@@ -110,7 +110,7 @@ void StackPush(stack_t *stack, StackElem_t new_value) {
 
     ++stack->size;
 
-    return;
+    return NOTHING;
 }
 
 StackElem_t StackPop(stack_t *stack) {

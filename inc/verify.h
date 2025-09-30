@@ -17,9 +17,9 @@ struct stack_t {
     ssize_t capacity  = 0;
 };
 
-const int POIZON = 146988;
-const int CANARY = 52954; // CEDA
-const int CANADA = 65242; // FEDA
+const int POIZON_VALUE = 146988;
+const int CANARY_LEFT = 52954; // CEDA
+const int CANARY_RIGHT = 65242; // FEDA
 
 const long mod = 998244353;
 

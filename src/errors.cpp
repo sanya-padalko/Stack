@@ -26,6 +26,9 @@ void ParseErr(StackErr_t error_type) {
         case HASH_ERR:
             printerr(RED_COLOR "Hash of stack went wrong. The inside of the stack has been changed\n");
             break;
+        case CAP_SIZE_ERR:
+            printerr(RED_COLOR "Size become greater than capacity in stack\n");
+            break;
         default:
             printerr(YELLOW_COLOR "Unknown error\n");
     }

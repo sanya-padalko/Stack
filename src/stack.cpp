@@ -1,5 +1,11 @@
 #include "stack.h"
 
+void fill_poizon(stack_t *stack, int left, int right) {
+    for (int i = left; i < right; ++i) {
+        stack->data[i] = POIZON_VALUE;
+    }
+}
+
 stack_t* StackCtor(ssize_t capacity ON_DEBUG(, VarInfo varinfo)) {
     ON_DEBUG(PrintVarInfo(varinfo));
 
@@ -10,31 +16,25 @@ stack_t* StackCtor(ssize_t capacity ON_DEBUG(, VarInfo varinfo)) {
         return NULL;
     }
 
-    if (capacity > 10000000 || capacity < 2) {
+    if (capacity > MaxCapacity || capacity < 0) {
         printerr(RED_COLOR "Unavailable size of stack in Stack's Constructor\n" RESET_COLOR);
         return NULL;
     }
 
-    stack->hash = 0;
-
-    stack->size = 2;
-
+    stack->size = 0;
     stack->capacity = capacity;
 
-    void* calloc_ptr = calloc(stack->capacity, sizeof(StackElem_t));
-    if (calloc_ptr == NULL) {
+    stack->data = (StackElem_t*)calloc(stack->capacity + 2, sizeof(StackElem_t));
+    if (stack->data == NULL) {
         printerr(RED_COLOR "Calloc return NULL in Stack Constructor\n" RESET_COLOR);
         return NULL;
     }
 
-    stack->data = (StackElem_t*)calloc_ptr;
-
     stack->data[0] = CANARY_LEFT;
+    ++stack->data;
+    stack->data[stack->capacity] = CANARY_RIGHT;
 
-    stack->data[stack->capacity - 1] = CANARY_RIGHT;
-
-    for (size_t i = 1; i < stack->capacity - 1; ++i)
-        stack->data[i] = POIZON_VALUE;
+    fill_poizon(stack, 0, stack->capacity);
 
     stack->hash = calc_hash(stack);
 
@@ -43,8 +43,7 @@ stack_t* StackCtor(ssize_t capacity ON_DEBUG(, VarInfo varinfo)) {
 
 StackErr_t StackDtor(stack_t *stack) {
     stackverify(stack);
-    if (code_error != NOTHING)
-        return code_error;
+    my_assert(code_error == NOTHING, code_error, code_error);
 
     free(stack->data);
     stack->data = NULL;
@@ -56,34 +55,22 @@ StackErr_t StackDtor(stack_t *stack) {
 
 static int StackRealloc(stack_t *stack, ssize_t new_size) {
     stackverify(stack);
-    if (code_error != NOTHING)
-        return -1;
+    my_assert(code_error == NOTHING, code_error, BadSize);
 
-    if (new_size < stack->size) {
-        printerr(RED_COLOR "Unavailable realloc-size of stack\n" RESET_COLOR);
-        return -1;
-    }
+    my_assert(new_size >= stack->size, SIZE_ERR, BadSize);
 
-    void* realloc_ptr = realloc(stack->data, new_size * sizeof(StackElem_t));
-    if (realloc_ptr == NULL) {
-        ON_DEBUG(stackdump(stack));
-        ParseErr(REALLOC_ERR);
-        return -1;
-    }
+    --stack->data;
+    stack->data = (StackElem_t*)realloc(stack->data, (new_size + 2) * sizeof(StackElem_t));
 
-    stack->data = (StackElem_t*)realloc_ptr;
+    my_assert(stack->data, REALLOC_ERR, BadSize);
 
-    stack->data[stack->capacity - 1] = POIZON_VALUE;
+    stack->data[0] = CANARY_LEFT;
+    ++stack->data;
 
-    while (stack->capacity < new_size) {
-        ++stack->capacity;
-        stack->data[stack->capacity - 1] = POIZON_VALUE;
-    }
-
-    while (stack->capacity > new_size)
-        --stack->capacity;
-
-    stack->data[stack->capacity - 1] = CANARY_RIGHT;
+    fill_poizon(stack, stack->size, new_size);
+    
+    stack->capacity = new_size;
+    stack->data[stack->capacity] = CANARY_RIGHT;
 
     stack->hash = calc_hash(stack);
 
@@ -92,19 +79,15 @@ static int StackRealloc(stack_t *stack, ssize_t new_size) {
 
 StackErr_t StackPush(stack_t *stack, StackElem_t new_value) {
     stackverify(stack);
-    if (code_error != NOTHING)
-        return code_error;
+    my_assert(code_error == NOTHING, code_error, code_error);
 
     if (stack->size == stack->capacity) {
-        int new_capacity = StackRealloc(stack, stack->size * 2);
+        int new_capacity = StackRealloc(stack, stack->size * ExpandMn);
 
-        if (new_capacity == -1) {
-            printerr(RED_COLOR "Push was not completed\n" RESET_COLOR);
-            return REALLOC_ERR;
-        }
+        my_assert(new_capacity != BadSize, REALLOC_ERR, REALLOC_ERR);
     }
 
-    *(stack->data + stack->size - 1) = new_value;
+    *(stack->data + stack->size) = new_value;
     
     stack->hash = calc_hash(stack);
 
@@ -115,10 +98,9 @@ StackErr_t StackPush(stack_t *stack, StackElem_t new_value) {
 
 StackElem_t StackPop(stack_t *stack) {
     stackverify(stack);
-    if (code_error != NOTHING)
-        return POIZON_VALUE;
+    my_assert(code_error == NOTHING, code_error, POIZON_VALUE);
 
-    if (stack->size == 2) {
+    if (stack->size == 0) {
         ON_DEBUG(stackdump(stack));
         ParseErr(EMPTY_STACK);
         printerr(RED_COLOR "You cannot pop from empty stack\n\n" RESET_COLOR);
@@ -126,16 +108,16 @@ StackElem_t StackPop(stack_t *stack) {
     }
 
     --stack->size;
-    StackElem_t last = *(stack->data + stack->size - 1);
-    *(stack->data + stack->size - 1) = POIZON_VALUE;
+    StackElem_t last = *(stack->data + stack->size);
+    *(stack->data + stack->size) = POIZON_VALUE;
 
     stack->hash = calc_hash(stack);
 
     int new_capacity = stack->capacity;
-    if (stack->size * 4 == stack->capacity)
-        new_capacity = StackRealloc(stack, stack->size);
+    if (stack->size * CheckMn == stack->capacity)
+        new_capacity = StackRealloc(stack, stack->capacity / NarrowMn);
 
-    if (new_capacity == -1)
+    if (new_capacity == BadSize)
         return POIZON_VALUE;
 
     return last;
